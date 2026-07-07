@@ -35,11 +35,14 @@ from sklearn.preprocessing import LabelEncoder
 
 from autoscience.data import loaders, splits
 from autoscience.data.registry import SizeTier, Task, get_spec
+from autoscience.evaluation.calibration import brier_score, expected_calibration_error
 from autoscience.evaluation.metrics import PRIMARY_METRIC, metric_panel, primary_score
+from autoscience.evaluation.uncertainty import regression_interval_metrics
 from autoscience.hpo.budgets import Budget, get_budget
 from autoscience.hpo.pipeline import build_pipeline
 from autoscience.hpo.spaces import suggest_params
 from autoscience.models.zoo import ModelName, is_allowed
+from autoscience.profiling.profiler import inference_latency_ms_per_1k, model_size_mb, profile
 from autoscience.tracking.mlflow_utils import code_version, log_params_safe, setup_mlflow
 from autoscience.utils.seed import set_global_seed
 
@@ -336,12 +339,35 @@ def _run_fold(
         n_trials = 0
 
     pipeline, decisions = build_pipeline(x_train, task, model, best_params, seed=seed)
-    fit_start = time.perf_counter()
-    pipeline.fit(x_train, y_train)
-    fit_seconds = time.perf_counter() - fit_start
+    with profile() as fit_profile:
+        pipeline.fit(x_train, y_train)
+    fit_seconds = fit_profile.seconds
 
     pred, proba = _predict_with_proba(pipeline, x_test, task)
     metrics = metric_panel(task, y_test, pred, proba)
+
+    # Calibration / uncertainty panel.
+    if task is Task.CLASSIFICATION and proba is not None:
+        metrics["ece"] = expected_calibration_error(y_test, proba)
+        metrics["brier"] = brier_score(y_test, proba)
+    elif task is Task.REGRESSION:
+        metrics.update(
+            regression_interval_metrics(
+                pipeline,
+                model,
+                x_train,
+                y_train,
+                x_test,
+                y_test,
+                best_params=best_params,
+                seed=seed,
+            )
+        )
+
+    # Efficiency panel.
+    metrics["fit_peak_mb"] = fit_profile.peak_increase_mb
+    metrics["model_size_mb"] = model_size_mb(pipeline)
+    metrics["latency_ms_per_1k"] = inference_latency_ms_per_1k(pipeline, x_test)
 
     (artifact_dir / f"best_params_fold{fold_i}.json").write_text(
         json.dumps(best_params, indent=2, default=str)

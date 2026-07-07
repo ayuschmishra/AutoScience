@@ -69,5 +69,40 @@ def run(
     typer.echo(f"MLflow run: {result.run_id}")
 
 
+audit_app = typer.Typer(help="Reproducibility audits.", no_args_is_help=True)
+app.add_typer(audit_app, name="audit")
+
+
+@audit_app.command("repro")
+def audit_repro(
+    dataset: str = typer.Option(..., "--dataset", "-d"),
+    model: str = typer.Option(..., "--model", "-m"),
+    seed: int = typer.Option(42),
+    budget: str = typer.Option("smoke"),
+    mode: str = typer.Option("automated"),
+    tolerance: float = typer.Option(0.0, help="Max allowed |delta| per quality metric."),
+) -> None:
+    """Run the identical experiment twice and verify metrics reproduce."""
+    from rich.console import Console
+    from rich.table import Table
+
+    from autoscience.evaluation.audit import repro_audit
+
+    report = repro_audit(
+        dataset, model, seed=seed, budget_profile=budget, mode=mode, tolerance=tolerance
+    )
+    table = Table(title=f"Reproducibility audit: {dataset} x {model} (seed={seed})")
+    table.add_column("metric")
+    table.add_column("|delta|")
+    for name, delta in sorted(report.deltas.items()):
+        table.add_row(name, f"{delta:.3e}")
+    Console().print(table)
+    if report.ok:
+        typer.echo(f"OK: max |delta| = {report.max_abs_delta:.3e} <= {tolerance:.1e}")
+    else:
+        typer.echo(f"FAIL: max |delta| = {report.max_abs_delta:.3e} > {tolerance:.1e}")
+        raise typer.Exit(code=1)
+
+
 if __name__ == "__main__":
     app()

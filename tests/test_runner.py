@@ -58,10 +58,11 @@ def test_baseline_mode_is_deterministic(isolated_dirs: Path) -> None:
     )
     a = run_experiment("wine", "linear", **kwargs)
     b = run_experiment("wine", "linear", **kwargs)
-    # Bit-identical reproduction of every model-quality metric (wall-clock
-    # timings are the only metrics allowed to differ).
-    quality = {k: v for k, v in a.aggregated.items() if "seconds" not in k}
-    assert quality == {k: v for k, v in b.aggregated.items() if "seconds" not in k}
+    # Bit-identical reproduction of every model-quality metric (timing and
+    # memory metrics are the only ones allowed to differ).
+    from autoscience.evaluation.audit import _quality_metrics
+
+    assert _quality_metrics(a.aggregated) == _quality_metrics(b.aggregated)
     assert a.aggregated["hpo_seconds_total"] == 0.0
 
 

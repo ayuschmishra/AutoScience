@@ -69,9 +69,7 @@ def build_selector(
         estimator = (
             # saga: the only L1-capable solver that also handles multiclass.
             # l1_ratio=1.0 is pure L1 (the `penalty` param is deprecated in 1.9).
-            LogisticRegression(
-                l1_ratio=1.0, solver="saga", C=0.1, max_iter=2000, random_state=seed
-            )
+            LogisticRegression(l1_ratio=1.0, solver="saga", C=0.1, max_iter=2000, random_state=seed)
             if classification
             else Lasso(alpha=0.01, max_iter=5000, random_state=seed)
         )
