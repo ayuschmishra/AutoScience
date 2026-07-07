@@ -177,9 +177,7 @@ def build_preprocessor(
     outlier_fraction = _outlier_fraction(x_num)
     skews = x_num.skew() if not x_num.empty else pd.Series(dtype=float)
     max_abs_skew = float(skews.abs().max()) if len(skews) else 0.0
-    max_cardinality = (
-        int(max(x[c].nunique() for c in categorical)) if categorical else 0
-    )
+    max_cardinality = int(max(x[c].nunique() for c in categorical)) if categorical else 0
 
     imputer, scaler, encoder, reasons = _resolve_auto(
         config,
@@ -217,7 +215,7 @@ def build_preprocessor(
         )
 
     column_transformer = ColumnTransformer(
-        transformers,  # type: ignore[arg-type]
+        transformers,
         remainder="drop",
         verbose_feature_names_out=False,
     )
