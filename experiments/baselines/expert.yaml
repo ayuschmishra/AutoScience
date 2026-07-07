@@ -1,0 +1,84 @@
+# "Sensible expert" manual baselines: literature-typical hyperparameters a
+# practitioner would pick without running hyperparameter search. These are the
+# strongest fair manual competitor to the automated pipeline; evaluated on the
+# same persisted folds. Keys are flat pipeline params (prep./select./model.).
+#
+# Sources of the conventions: XGBoost docs & Kaggle folklore (lr 0.05,
+# depth 6, subsample/colsample 0.8), sklearn user guide defaults tuned up
+# (500 trees for forests), standard MLP recipes (2x128, dropout 0.1).
+
+classification:
+  linear:
+    model.C: 1.0
+  sgd_linear:
+    model.alpha: 1.0e-4
+  random_forest:
+    model.n_estimators: 500
+    model.min_samples_leaf: 1
+  extra_trees:
+    model.n_estimators: 500
+  hist_gb:
+    model.learning_rate: 0.06
+    model.max_iter: 300
+  svm:
+    model.C: 1.0
+    model.gamma: 0.1
+  knn:
+    model.n_neighbors: 11
+    model.weights: distance
+  xgboost:
+    model.n_estimators: 500
+    model.learning_rate: 0.05
+    model.max_depth: 6
+    model.subsample: 0.8
+    model.colsample_bytree: 0.8
+  torch_mlp:
+    model.hidden_dim: 128
+    model.n_layers: 2
+    model.dropout: 0.1
+    model.lr: 1.0e-3
+
+regression:
+  linear:
+    model.alpha: 1.0
+  lasso:
+    model.alpha: 0.01
+  sgd_linear:
+    model.alpha: 1.0e-4
+  random_forest:
+    model.n_estimators: 500
+    model.min_samples_leaf: 2
+  extra_trees:
+    model.n_estimators: 500
+  hist_gb:
+    model.learning_rate: 0.06
+    model.max_iter: 300
+  svm:
+    model.C: 1.0
+    model.gamma: 0.1
+  knn:
+    model.n_neighbors: 11
+    model.weights: distance
+  xgboost:
+    model.n_estimators: 500
+    model.learning_rate: 0.05
+    model.max_depth: 6
+    model.subsample: 0.8
+    model.colsample_bytree: 0.8
+  torch_mlp:
+    model.hidden_dim: 128
+    model.n_layers: 2
+    model.dropout: 0.1
+    model.lr: 1.0e-3
+
+# Per-dataset overrides (dataset -> model -> params) when literature suggests
+# something specific for a dataset.
+datasets:
+  higgs:
+    xgboost:
+      model.n_estimators: 500
+      model.learning_rate: 0.1
+      model.max_depth: 8
+    torch_mlp:
+      model.hidden_dim: 256
+      model.n_layers: 3

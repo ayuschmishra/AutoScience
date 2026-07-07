@@ -1,0 +1,8 @@
+# Smoke benchmark: proves the full sweep plumbing locally in ~30-60 min.
+name: smoke
+budget_profile: smoke
+full_data: false
+seeds: [42, 43]
+datasets: [wine, breast_cancer, ionosphere, diabetes, concrete_strength, phoneme]
+models: [linear, hist_gb, xgboost]
+modes: [automated, baseline_default, baseline_expert]

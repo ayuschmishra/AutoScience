@@ -1,0 +1,14 @@
+# Local benchmark: laptop-overnight budget, all datasets at local sizes
+# (large tier runs on its fixed-seed subsets).
+name: local
+budget_profile: local
+full_data: false
+seeds: [42, 43, 44]
+datasets:
+  [
+    breast_cancer, wine, ionosphere, diabetes, concrete_strength,
+    energy_efficiency, phoneme, spambase, adult, california_housing,
+    superconductivity, covertype, year_prediction_msd,
+  ]
+models: [linear, sgd_linear, random_forest, extra_trees, hist_gb, svm, knn, xgboost, torch_mlp]
+modes: [automated, baseline_default, baseline_expert]

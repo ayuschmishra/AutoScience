@@ -69,6 +69,41 @@ def run(
     typer.echo(f"MLflow run: {result.run_id}")
 
 
+@app.command()
+def benchmark(
+    config: str = typer.Option(
+        "experiments/benchmark_smoke.yaml", "--config", "-c", help="Experiment YAML."
+    ),
+) -> None:
+    """Run the benchmark sweep declared in an experiment config (resumable)."""
+    from pathlib import Path
+
+    from rich.console import Console
+    from rich.table import Table
+
+    from autoscience.benchmark import BenchmarkConfig, run_benchmark
+
+    cfg = BenchmarkConfig.load(Path(config))
+    summary = run_benchmark(cfg)
+
+    table = Table(title=f"Benchmark '{cfg.name}' summary")
+    for col in ("dataset", "model", "seed", "mode", "status", "detail"):
+        table.add_column(col)
+    for o in summary.outcomes:
+        style = {"completed": "green", "failed": "red"}.get(o.status, "yellow")
+        table.add_row(
+            o.dataset, o.model, str(o.seed), o.mode, f"[{style}]{o.status}[/{style}]", o.detail
+        )
+    Console().print(table)
+    typer.echo(
+        f"completed={summary.count('completed')} "
+        f"skipped_existing={summary.count('skipped_existing')} "
+        f"skipped_gated={summary.count('skipped_gated')} failed={summary.count('failed')}"
+    )
+    if summary.count("failed"):
+        raise typer.Exit(code=1)
+
+
 audit_app = typer.Typer(help="Reproducibility audits.", no_args_is_help=True)
 app.add_typer(audit_app, name="audit")
 
