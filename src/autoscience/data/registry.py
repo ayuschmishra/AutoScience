@@ -131,7 +131,7 @@ REGISTRY: dict[str, DatasetSpec] = {
         DatasetSpec(
             name="energy_efficiency",
             task=Task.REGRESSION,
-            source=OpenMLSource(data_id=44960, target="Y1"),
+            source=OpenMLSource(data_id=44960, target="heating_load"),
             expected_rows=768,
             expected_features=8,
             description="Building heating load from simulated geometry parameters.",
@@ -172,7 +172,7 @@ REGISTRY: dict[str, DatasetSpec] = {
         DatasetSpec(
             name="superconductivity",
             task=Task.REGRESSION,
-            source=OpenMLSource(data_id=44964, target="criticaltemp"),
+            source=OpenMLSource(data_id=44964, target="critical_temp"),
             expected_rows=21263,
             expected_features=81,
             description="Superconductor critical temperature from material features.",

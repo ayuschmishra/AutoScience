@@ -15,6 +15,7 @@ import logging
 import typer
 
 from autoscience import __version__
+from autoscience.data.commands import data_app
 from autoscience.utils.logging import setup_logging
 
 app = typer.Typer(
@@ -23,6 +24,7 @@ app = typer.Typer(
     no_args_is_help=True,
     pretty_exceptions_show_locals=False,
 )
+app.add_typer(data_app, name="data")
 
 
 @app.callback()
