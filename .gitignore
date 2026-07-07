@@ -11,6 +11,7 @@ data/raw/
 data/processed/
 mlruns/
 mlartifacts/
+mlflow.db
 outputs/
 multirun/
 optuna.db
