@@ -104,6 +104,74 @@ def benchmark(
         raise typer.Exit(code=1)
 
 
+@app.command()
+def report() -> None:
+    """Regenerate reports/benchmark_report.md from MLflow benchmark runs."""
+    from autoscience.reporting.report import collect_runs, collect_scaling_runs, generate_report
+
+    df = collect_runs()
+    scaling_df = collect_scaling_runs()
+    path = generate_report(df, scaling_df=scaling_df)
+    typer.echo(f"Report: {path} ({len(df)} benchmark runs, {len(scaling_df)} scaling points)")
+
+
+@app.command()
+def scaling(
+    dataset: str = typer.Option(..., "--dataset", "-d", help="Large-tier dataset name."),
+    models: str = typer.Option(
+        "sgd_linear,hist_gb,xgboost,torch_mlp", "--models", "-m", help="Comma-separated models."
+    ),
+    fractions: str = typer.Option("0.01,0.05,0.1,0.33,1.0", help="Comma-separated fractions."),
+    seed: int = typer.Option(42),
+    full: bool = typer.Option(False, "--full", help="Use the full dataset (cloud)."),
+) -> None:
+    """Scaling study: train on nested data fractions, log score/time/memory."""
+    from autoscience.scaling import run_scaling_study
+
+    result = run_scaling_study(
+        dataset,
+        [m.strip() for m in models.split(",")],
+        fractions=tuple(float(f) for f in fractions.split(",")),
+        seed=seed,
+        full_data=full,
+    )
+    typer.echo(result.to_string(index=False))
+
+
+@app.command()
+def register(
+    dataset: str = typer.Option(..., "--dataset", "-d"),
+    full: bool = typer.Option(False, "--full", help="Refit on the full dataset."),
+) -> None:
+    """Register the best automated pipeline for a dataset in the Model Registry."""
+    from autoscience.tracking.registry import register_best
+
+    name = register_best(dataset, full_data=full)
+    typer.echo(f"Registered: {name}")
+
+
+@app.command()
+def predict(
+    dataset: str = typer.Option(..., "--dataset", "-d", help="Registered dataset name."),
+    input_csv: str = typer.Option(..., "--input", "-i", help="CSV with feature columns."),
+    output_csv: str = typer.Option("predictions.csv", "--output", "-o"),
+) -> None:
+    """Predict with the registered pipeline for a dataset (demo serving path)."""
+    import pandas as pd
+
+    from autoscience.tracking.registry import load_registered
+
+    model = load_registered(dataset)
+    x = pd.read_csv(input_csv)
+    out = pd.DataFrame({"prediction": model.predict(x)})
+    if hasattr(model, "predict_proba"):
+        proba = model.predict_proba(x)
+        for i in range(proba.shape[1]):
+            out[f"proba_{i}"] = proba[:, i]
+    out.to_csv(output_csv, index=False)
+    typer.echo(f"{len(out)} predictions -> {output_csv}")
+
+
 audit_app = typer.Typer(help="Reproducibility audits.", no_args_is_help=True)
 app.add_typer(audit_app, name="audit")
 
