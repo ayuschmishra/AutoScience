@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # AutoScience
 
 **Automated Machine Learning Pipeline for Scientific Datasets**
@@ -95,6 +94,3 @@ experiment configs in `experiments/`, generated report in `reports/`. Design not
 ## License
 
 MIT
-=======
-# AutoScience
->>>>>>> 18cb04291b919c9638c54a32c63db3d028c8ec0c
