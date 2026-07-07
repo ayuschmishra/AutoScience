@@ -1,0 +1,32 @@
+# Environments
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Data & experiment artifacts (regenerable)
+data/raw/
+data/processed/
+mlruns/
+mlartifacts/
+outputs/
+multirun/
+optuna.db
+
+# Reports keep sources, ignore rendered figures
+reports/figures/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
