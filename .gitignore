@@ -9,9 +9,12 @@ build/
 # Data & experiment artifacts (regenerable)
 data/raw/
 data/processed/
+data/splits/
 mlruns/
 mlartifacts/
 mlflow.db
+mlflow.db.corrupt-backup
+mlflow.db.*
 outputs/
 multirun/
 optuna.db
@@ -31,3 +34,6 @@ htmlcov/
 Thumbs.db
 .vscode/
 .idea/
+
+# Local IDE-agent config — machine-specific, never versioned
+.claude/
